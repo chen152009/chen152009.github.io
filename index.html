@@ -115,9 +115,24 @@
     <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
 
   </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
 
   </li>
   </ul>
@@ -147,10 +162,10 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://chen152009.github.io/2022/11/17/hello-world/">
+    <link itemprop="mainEntityOfPage" href="https://chen152009.github.io/2022/11/21/redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E8%AE%B0%E5%BD%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.jpg">
       <meta itemprop="name" content="lgf">
       <meta itemprop="description" content="日常记录">
     </span>
@@ -161,7 +176,85 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2022/11/17/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
+            <a href="/2022/11/21/redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">redis的数据类型操作命令记录</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-11-21 17:32:34 / 修改时间：17:59:36" itemprop="dateCreated datePublished" datetime="2022-11-21T17:32:34+08:00">2022-11-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><a target="_blank" rel="noopener" href="https://redis.io/">官网</a></p>
+<p>redis是一个key-value存储系统。和Memcached类似，它支持存储的value类型相对更多，包括string(字符串)、list(链表)、set(集合)、zset(sorted set –有序集合)和hash（哈希类型）。这些数据类型都支持push&#x2F;pop、add&#x2F;remove及取交集并集和差集及更丰富的操作，而且这些操作都是原子性的。在此基础上，redis支持各种不同方式的排序。与memcached一样，为了保证效率，数据都是缓存在内存中。区别的是redis会周期性的把更新的数据写入磁盘或者把修改操作写入追加的记录文件，并且在此基础上实现了master-slave(主从)同步。</p>
+<p>一些基本命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">flushall 清空所有</span><br><span class="line">flushdb 清空当前库</span><br><span class="line">dbsize  查看当前库大小</span><br><span class="line">keys * 查看所有key</span><br><span class="line">set key value</span><br><span class="line">get key</span><br><span class="line">expire key xx 设置过期时间 秒 </span><br><span class="line">ttl key 查看过期时间</span><br><span class="line">exists key key是否存在</span><br><span class="line">move key dbx 移动key到别的db</span><br><span class="line">type key 查看key类型</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/11/21/redis%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E8%AE%B0%E5%BD%95/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chen152009.github.io/2022/11/17/hello-world/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="lgf">
+      <meta itemprop="description" content="日常记录">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="record">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/11/17/hello-world/" class="post-title-link" itemprop="url">Hexo基本命令</a>
         </h2>
 
         <div class="post-meta">
@@ -178,7 +271,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-11-21 12:45:45" itemprop="dateModified" datetime="2022-11-21T12:45:45+08:00">2022-11-21</time>
+                <time title="修改时间：2022-11-21 18:03:06" itemprop="dateModified" datetime="2022-11-21T18:03:06+08:00">2022-11-21</time>
               </span>
 
           
@@ -193,7 +286,7 @@
 
       
           <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="写作"><a href="#写作" class="headerlink" title="写作"></a>写作</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2022/11/17/hello-world/#more" rel="contents">
@@ -223,7 +316,7 @@
     <link itemprop="mainEntityOfPage" href="https://chen152009.github.io/2022/04/08/yii2-unit-test/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.jpg">
       <meta itemprop="name" content="lgf">
       <meta itemprop="description" content="日常记录">
     </span>
@@ -234,7 +327,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2022/04/08/yii2-unit-test/" class="post-title-link" itemprop="url">yii2-unit-test</a>
+            <a href="/2022/04/08/yii2-unit-test/" class="post-title-link" itemprop="url">yii2-单元测试</a>
         </h2>
 
         <div class="post-meta">
@@ -251,8 +344,17 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-11-21 12:44:22" itemprop="dateModified" datetime="2022-11-21T12:44:22+08:00">2022-11-21</time>
+                <time title="修改时间：2022-11-21 18:00:30" itemprop="dateModified" datetime="2022-11-21T18:00:30+08:00">2022-11-21</time>
               </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PHP/" itemprop="url" rel="index"><span itemprop="name">PHP</span></a>
+                </span>
+            </span>
 
           
 
@@ -268,9 +370,7 @@
           <h1 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h1><p><a target="_blank" rel="noopener" href="https://codeception.com/for/yii">文档</a></p>
 <p>在项目目录执行</p>
 <h3 id="生成测试"><a href="#生成测试" class="headerlink" title="生成测试"></a>生成测试</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vendor/bin/codecept generate:test unit models/KnowledgeModelTest -c frontend</span><br></pre></td></tr></table></figure>
-
 <h3 id="执行测试"><a href="#执行测试" class="headerlink" title="执行测试"></a>执行测试</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vendor/bin/codecept run unit models/KnowledgeModelTest -c frontend</span><br><span class="line">vendor/bin/codecept run unit models/KnowledgeModelTest:testSave -c frontend //具体方法</span><br></pre></td></tr></table></figure>
-
 <h3 id="fixture-生成测试数据"><a href="#fixture-生成测试数据" class="headerlink" title="fixture 生成测试数据"></a>fixture 生成测试数据</h3>
           <!--noindex-->
             <div class="post-button">
@@ -352,6 +452,8 @@
 
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="lgf"
+      src="/images/avatar.jpg">
   <p class="site-author-name" itemprop="name">lgf</p>
   <div class="site-description" itemprop="description">日常记录</div>
 </div>
@@ -360,13 +462,21 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-count">3</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
-      <div class="site-state-item site-state-tags">
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
         <span class="site-state-item-count">2</span>
-        <span class="site-state-item-name">标签</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
 </div>
