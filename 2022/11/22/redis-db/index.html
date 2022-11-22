@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"chen152009.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Redis将保存在内存中的数据 写入磁盘 以防服务器宕机而丢失数据 这个过程称之为Redis持久化 支持三种方式  redis database  即rdb  默认文件名  dump.rdb  默认开启 append only file 即 aof  默认文件名 appendonly.aof 以上两种混合 redis4.0开始支持  RDB持久化 RDB手动触发命令  连上客户端redis-cli">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis持久化">
+<meta property="og:url" content="https://chen152009.github.io/2022/11/22/redis-db/index.html">
+<meta property="og:site_name" content="Just My Blog">
+<meta property="og:description" content="Redis将保存在内存中的数据 写入磁盘 以防服务器宕机而丢失数据 这个过程称之为Redis持久化 支持三种方式  redis database  即rdb  默认文件名  dump.rdb  默认开启 append only file 即 aof  默认文件名 appendonly.aof 以上两种混合 redis4.0开始支持  RDB持久化 RDB手动触发命令  连上客户端redis-cli">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chen152009.github.io/images/redis-rdb.png">
+<meta property="article:published_time" content="2022-11-22T01:53:21.000Z">
+<meta property="article:modified_time" content="2022-11-22T10:26:08.847Z">
+<meta property="article:author" content="lgf">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chen152009.github.io/images/redis-rdb.png">
+
+<link rel="canonical" href="https://chen152009.github.io/2022/11/22/redis-db/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Redis持久化 | Just My Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Just My Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chen152009.github.io/2022/11/22/redis-db/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="lgf">
+      <meta itemprop="description" content="好记性不如烂笔头">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Just My Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Redis持久化
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-11-22 09:53:21 / 修改时间：18:26:08" itemprop="dateCreated datePublished" datetime="2022-11-22T09:53:21+08:00">2022-11-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Redis将保存在内存中的数据 写入磁盘 以防服务器宕机而丢失数据 这个过程称之为Redis持久化</p>
+<p><em><strong>支持三种方式</strong></em></p>
+<ul>
+<li>redis database  即rdb  默认文件名  dump.rdb  默认开启</li>
+<li>append only file 即 aof  默认文件名 appendonly.aof</li>
+<li>以上两种混合 redis4.0开始支持</li>
+</ul>
+<h2 id="RDB持久化"><a href="#RDB持久化" class="headerlink" title="RDB持久化"></a>RDB持久化</h2><hr>
+<h3 id="RDB手动触发命令"><a href="#RDB手动触发命令" class="headerlink" title="RDB手动触发命令"></a>RDB手动触发命令</h3><p>  连上客户端redis-cli</p>
+<p>  1.save 阻塞主进程 持久化完成后才响应客户端请求<br>  2.bgsave fork()一个子进程 来持久化 不影响响应客户端请求 </p>
+<span id="more"></span>
+<h3 id="RDB自动触发"><a href="#RDB自动触发" class="headerlink" title="RDB自动触发"></a>RDB自动触发</h3><p>  save m n  #save “” 表示禁用<br>    默认配置文件如下<br><img src="/images/redis-rdb.png"></p>
+<p> 此外执行flashall 和主从同步的时候也会触发</p>
+<h3 id="RDB文件恢复"><a href="#RDB文件恢复" class="headerlink" title="RDB文件恢复"></a>RDB文件恢复</h3><p>Redis 服务启动时 自动加载RDB 文件恢复持久化数据（启动时有日志信息，会显示是否加载了 RDB 文件）<br>Redis 服务器在载入RDB文件期间，会一直处于阻塞状态，直到载入工作完成为止。</p>
+<h3 id="RDB优缺点"><a href="#RDB优缺点" class="headerlink" title="RDB优缺点"></a>RDB优缺点</h3><p> <em><strong>优点</strong></em></p>
+<ul>
+<li>RDB文件是紧凑的二进制文件，比较适合做冷备，全量复制的场景</li>
+<li>基于RDB数据文件来重启和恢复Redis进程，更加快速</li>
+<li>RDB使用单独子进程来进行持久化，主进程不会进行任何IO操作，保证了Redis的高性能</li>
+</ul>
+<p> <em><strong>缺点</strong></em></p>
+<ul>
+<li>会丢失一段时间内数据</li>
+<li>如果数据集很大，cpu性能不佳，fork()可能很耗时，影响服务</li>
+</ul>
+<h2 id="AOF持久化"><a href="#AOF持久化" class="headerlink" title="AOF持久化"></a>AOF持久化</h2><hr>
+<h3 id="AOF自动触发"><a href="#AOF自动触发" class="headerlink" title="AOF自动触发"></a>AOF自动触发</h3><p>  AOF 可以把 Redis 每个键值对操作都记录到文件（appendonly.aof）中。默认不开启</p>
+<p>  配置文件<br>  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">appendonly no  #是否开启aof持久化 默认no</span><br><span class="line"></span><br><span class="line">appendfilename &quot;appendonly.aof&quot;  #文件名</span><br><span class="line"></span><br><span class="line"># appendfsync always  #每条 Redis 操作命令都会写入磁盘，最多丢失一条数据；</span><br><span class="line">appendfsync everysec  #每秒钟写入一次磁盘，最多丢失一秒的数据</span><br><span class="line"># appendfsync no  #不设置写入磁盘的规则，根据当前操作系统来决定何时写入磁盘。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line"></span><br><span class="line">auto-aof-rewrite-percentage 100 #AOF 文件重写的大小比例</span><br><span class="line">auto-aof-rewrite-min-size 64mb  #允许AOF重写的最小文件容量</span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
+<h3 id="AOF手动触发"><a href="#AOF手动触发" class="headerlink" title="AOF手动触发"></a>AOF手动触发</h3><p>   bgrewriteaof 命令就可以手动触发 AOF 持久化，自动触发 AOF 文件重写。</p>
+<h3 id="AOF文件重写"><a href="#AOF文件重写" class="headerlink" title="AOF文件重写"></a>AOF文件重写</h3><p>AOF 重写指的是它会直接读取 Redis 服务器当前的状态，并压缩保存为 AOF 文件<br>只有同时满足 auto-aof-rewrite-min-size 和 auto-aof-rewrite-percentage 设置的条件，才会触发 AOF 文件重写。<br>AOF 文件重写是生成一个全新的文件，并把当前数据的最少操作命令保存到新文件上，当把所有的数据都保存至新文件之后，Redis 会交换两个文件，并把最新的持久化操作命令追加到新文件上。</p>
+<h3 id="AOF下的数据恢复"><a href="#AOF下的数据恢复" class="headerlink" title="AOF下的数据恢复"></a>AOF下的数据恢复</h3><p>正常数据恢复，正常情况下，只要开启了 AOF 持久化，并且提供了正常的 appendonly.aof 文件，在 Redis 启动时就会自定加载 AOF 文件并启动</p>
+<p>对于错误格式的AOF文件，先进行备份，然后采用redis-check-aof–fix命令进行修复，修复后使用diff -u对比数据的差异，找出丢失的数据，有些可以人工修改补全。</p>
+<p>AOF文件可能存在结尾不完整的情况，比如机器突然掉电 导致AOF尾部文件命令写入不全，Redis为我们提供了aof-load-truncated配置来兼容这种情况，默认开启。</p>
+<h3 id="AOF的优缺点"><a href="#AOF的优缺点" class="headerlink" title="AOF的优缺点"></a>AOF的优缺点</h3><p><em><strong>优点</strong></em></p>
+<ul>
+<li>AOF持久化保存的数据更加完整 默认每秒保存一次 最多丢失一秒的数据</li>
+<li>AOF采用的是命令追加的写入方式，可以通过 redis-check-aof 工具修复文件</li>
+<li>AOF 持久化文件，非常容易理解和解析，假如不小心flushall ,只需删除最后的 flushall 命令，重启 Redis 即可恢复之前误删的数据</li>
+</ul>
+<p> <em><strong>缺点</strong></em></p>
+<ul>
+<li>对于相同的数据集来说，AOF 文件要大于 RDB 文件</li>
+<li>在 Redis 负载比较高的情况下，RDB 比 AOF 性能更好</li>
+<li></li>
+</ul>
+<h3 id="持久化文件加载规则"><a href="#持久化文件加载规则" class="headerlink" title="持久化文件加载规则"></a>持久化文件加载规则</h3><ul>
+<li>如果只开启了 AOF 持久化，启动时只会加载 AOF 文件；</li>
+<li>如果只开启了 RDB 持久化，启动时只会加载 RDB 文件；</li>
+<li>如果同时开启了 RDB 和 AOF 持久化，启动时只会加载 AOF 文件。</li>
+</ul>
+<hr>
+<h2 id="混合持久化"><a href="#混合持久化" class="headerlink" title="混合持久化"></a>混合持久化</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aof-use-rdb-preamble yes  #开启混合持久化</span><br></pre></td></tr></table></figure>
+
+<p>在开启混合持久化的情况下，AOF 重写时会把 Redis 的持久化数据，以 RDB 的格式写入到 AOF 文件的开头，之后的数据再以 AOF 的格式化追加的文件的末尾。</p>
+<p>混合持久化的数据恢复和 AOF 持久化过程是一样的，只需要把 appendonly.aof 放到 Redis 的根目录，在 Redis 启动时，只要开启了 AOF 持久化，Redis 就会自动加载并恢复数据</p>
+<p><em><strong>加载过程</strong></em><br>1.判断是否开启 AOF 持久化，开启继续执行后续流程，未开启执行加载 RDB 文件的流程；<br>2.判断 appendonly.aof 文件是否存在，文件存在则执行后续流程；<br>3.判断 AOF 文件开头是 RDB 的格式, 先加载 RDB 内容再加载剩余的 AOF 内容；<br>4.判断 AOF 文件开头不是 RDB 的格式，直接以 AOF 格式加载整个文件。</p>
+<p><em><strong>优点</strong></em></p>
+<ul>
+<li>混合持久化结合了 RDB 和 AOF 持久化的优点，开头为 RDB 的格式，使得 Redis 可以更快的启动，同时结合 AOF 的优点，有减低了大量数据丢失的风险。</li>
+</ul>
+<p><em><strong>缺点</strong></em></p>
+<ul>
+<li>AOF 文件中添加了 RDB 格式的内容，使得 AOF 文件的可读性变得很差；兼容性差，如果开启混合持久化，那么此混合持久化 AOF 文件，就不能用在 Redis 4.0 之前版本了。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Redis/" rel="tag"># Redis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/11/21/redis-slaveof/" rel="prev" title="redis主从复制及哨兵">
+      <i class="fa fa-chevron-left"></i> redis主从复制及哨兵
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#RDB%E6%8C%81%E4%B9%85%E5%8C%96"><span class="nav-number">1.</span> <span class="nav-text">RDB持久化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RDB%E6%89%8B%E5%8A%A8%E8%A7%A6%E5%8F%91%E5%91%BD%E4%BB%A4"><span class="nav-number">1.1.</span> <span class="nav-text">RDB手动触发命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RDB%E8%87%AA%E5%8A%A8%E8%A7%A6%E5%8F%91"><span class="nav-number">1.2.</span> <span class="nav-text">RDB自动触发</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RDB%E6%96%87%E4%BB%B6%E6%81%A2%E5%A4%8D"><span class="nav-number">1.3.</span> <span class="nav-text">RDB文件恢复</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RDB%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">1.4.</span> <span class="nav-text">RDB优缺点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AOF%E6%8C%81%E4%B9%85%E5%8C%96"><span class="nav-number">2.</span> <span class="nav-text">AOF持久化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF%E8%87%AA%E5%8A%A8%E8%A7%A6%E5%8F%91"><span class="nav-number">2.1.</span> <span class="nav-text">AOF自动触发</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF%E6%89%8B%E5%8A%A8%E8%A7%A6%E5%8F%91"><span class="nav-number">2.2.</span> <span class="nav-text">AOF手动触发</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF%E6%96%87%E4%BB%B6%E9%87%8D%E5%86%99"><span class="nav-number">2.3.</span> <span class="nav-text">AOF文件重写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF%E4%B8%8B%E7%9A%84%E6%95%B0%E6%8D%AE%E6%81%A2%E5%A4%8D"><span class="nav-number">2.4.</span> <span class="nav-text">AOF下的数据恢复</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">2.5.</span> <span class="nav-text">AOF的优缺点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%81%E4%B9%85%E5%8C%96%E6%96%87%E4%BB%B6%E5%8A%A0%E8%BD%BD%E8%A7%84%E5%88%99"><span class="nav-number">2.6.</span> <span class="nav-text">持久化文件加载规则</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%B7%E5%90%88%E6%8C%81%E4%B9%85%E5%8C%96"><span class="nav-number">3.</span> <span class="nav-text">混合持久化</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="lgf"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">lgf</p>
+  <div class="site-description" itemprop="description">好记性不如烂笔头</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lgf</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
